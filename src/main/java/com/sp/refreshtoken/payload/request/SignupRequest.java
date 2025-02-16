@@ -11,10 +11,10 @@ public class SignupRequest {
     String username;
 
     @NotBlank
-    @Size(min = 7,max = 20)
+    @Size(min = 3,max = 20)
     String password;
 
-    @Size(min = 10,max = 20)
+    @Size(min = 3,max = 20)
     @NotBlank
     String email;
 }

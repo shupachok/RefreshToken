@@ -12,9 +12,4 @@ public class RefreshTokenApplication {
         SpringApplication.run(RefreshTokenApplication.class, args);
     }
 
-    @Bean
-    BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
 }

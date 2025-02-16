@@ -2,6 +2,7 @@ package com.sp.refreshtoken.util;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.MacAlgorithm;
+import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
+@Log4j2
+@Component
 public class JwtUtils {
   private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
@@ -39,7 +41,7 @@ public class JwtUtils {
     return Jwts.parser()
             .verifyWith(getSignInKey())
             .build()
-            .parseSignedClaims("")
+            .parseSignedClaims(token)
             .getPayload().getSubject();
   }
 
@@ -78,6 +80,25 @@ public class JwtUtils {
     return scopes.stream()
             .map(scopeMap -> new SimpleGrantedAuthority(scopeMap.get("authority")))
             .collect(Collectors.toList());
+  }
+
+  public boolean validateJwtToken(String authToken) {
+    try {
+      extractAllClaims(authToken);
+      return true;
+    } catch (SignatureException e) {
+      log.error("Invalid JWT signature: {}", e.getMessage());
+    } catch (MalformedJwtException e) {
+      log.error("Invalid JWT token: {}", e.getMessage());
+    } catch (ExpiredJwtException e) {
+      log.error("JWT token is expired: {}", e.getMessage());
+    } catch (UnsupportedJwtException e) {
+      log.error("JWT token is unsupported: {}", e.getMessage());
+    } catch (IllegalArgumentException e) {
+      log.error("JWT claims string is empty: {}", e.getMessage());
+    }
+
+    return false;
   }
 
 }

@@ -1,87 +1,111 @@
 package com.sp.refreshtoken.security;
 
+import com.sp.refreshtoken.security.jwt.AuthEntryPointJwt;
+import com.sp.refreshtoken.security.jwt.AuthTokenFilter;
+import com.sp.refreshtoken.security.jwt.AuthenticationFilter;
+import com.sp.refreshtoken.security.service.UserDetailsServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
 @EnableWebSecurity
 public class WebSecurity {
 
-//    @Autowired
-//    private UserDetailsServiceImpl userDetailsService;
-//
-//    @Autowired
-//    private BCryptPasswordEncoder bCryptPasswordEncoder;
-//
-//    @Autowired
-//    private Environment environment;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
-//
-//    public WebSecurity(UserDetailsServiceImpl userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder, Environment environment) {
-//        this.userDetailsService = userDetailsService;
-//        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-//        this.environment = environment;
-//    }
+    @Autowired
+    private AuthEntryPointJwt unauthorizedHandler;
+
+    @Autowired
+    private AuthTokenFilter authenticationJwtTokenFilter;
+
+    private static final String[] AUTH_WHITELIST = {
+            "/csrf/**",
+            "/auth/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/h2-console/**"
+    };
 
     @Bean
-    protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
 
-        AuthenticationManagerBuilder authenticationManagerBuilder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
 
-//        authenticationManagerBuilder.userDetailsService(userDetailsService)
-//                .passwordEncoder(bCryptPasswordEncoder);
-//
-//        AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
-//
-//        AuthenticationFilter authenticationFilter =
-//                new AuthenticationFilter(authenticationManager, environment);
-//        authenticationFilter.setFilterProcessesUrl(environment.getProperty("login.url.path"));
+        return authProvider;
+    }
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-//        http
-////				.authorizeHttpRequests(
-////						auth -> auth.requestMatchers("/h2-console/**").permitAll()
-////				)
-////				.authorizeHttpRequests(
-////						auth -> auth.requestMatchers(HttpMethod.POST,"/signup").permitAll()
-////				)
-//                .authorizeHttpRequests(
-//                        auth -> auth.anyRequest().permitAll()
-//                )
-//                .addFilter(new AuthorizationFilter(authenticationManager, environment))
-//                .authenticationManager(authenticationManager)
-//                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .csrf(conf -> conf.disable())
-//                .headers(conf -> conf.frameOptions(foption -> foption.disable()));
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-//                .authorizeHttpRequests(authorize -> authorize
-//                        .anyRequest().permitAll()// Or any other authorization rules
-//                )
+                .exceptionHandling(
+                        exception -> exception.authenticationEntryPoint(unauthorizedHandler)
+                )
+                .addFilterBefore(authenticationJwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/h2-console/**").permitAll()
+                        auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll()
                 )
                 .authorizeHttpRequests(
                         auth -> auth.anyRequest().authenticated()
                 )
-                .headers(headers -> headers
-                        .frameOptions(frameOptions -> frameOptions.disable())
-                )
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csrf -> csrf.disable())
-                .headers(conf -> conf.frameOptions(foption -> foption.disable()));
+                .headers(conf -> conf.frameOptions(foption -> foption.disable()))
+                .cors(withDefaults());
 
+        http.authenticationProvider(authenticationProvider());
 
         return http.build();
 
     }
+
+//    @Bean
+//    CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Example: Allow from localhost:3000
+//        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));  // Example: Allow GET and POST
+//        configuration.setAllowedHeaders(List.of("*")); // Example: Allow all headers (be careful in production)
+//        configuration.setAllowCredentials(true); // Important if you're using cookies or Authorization headers
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration); // Apply to all paths
+//        return source;
+//    }
 
 }
