@@ -7,11 +7,11 @@ public class MessageResponse {
 
     private String message;
     private Object data;
-    private String status;
+    private String code;
 
     public MessageResponse(String message,String code,Object data) {
         this.message = message;
         this.data = data;
-        this.status = status;
+        this.code = code;
     }
 }

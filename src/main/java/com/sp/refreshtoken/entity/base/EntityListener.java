@@ -44,11 +44,11 @@ public class EntityListener {
         }
 
         if (status.equals("CREATE")) {
-            BeanUtils.setProperty(arg, "createdBy", user != null ? user : "SYSTEM");
-            BeanUtils.setProperty(arg, "createdDate", DateUtil.getCurrentDate());
+            BeanUtils.setProperty(arg, "createBy", user != null ? user : "SYSTEM");
+            BeanUtils.setProperty(arg, "createDate", DateUtil.getCurrentDate());
         }else{
-            BeanUtils.setProperty(arg, "updatedBy", user != null ? user : "SYSTEM");
-            BeanUtils.setProperty(arg, "updatedDate", DateUtil.getCurrentDate());
+            BeanUtils.setProperty(arg, "updateBy", user != null ? user : "SYSTEM");
+            BeanUtils.setProperty(arg, "updateDate", DateUtil.getCurrentDate());
         }
 
         Class<?> cls = arg.getClass();

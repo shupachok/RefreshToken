@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -19,10 +20,9 @@ public class Role extends BaseEntity {
 	private ERole name;
 
 	@ManyToMany(
-			cascade = CascadeType.PERSIST,
 			fetch = FetchType.EAGER)
-	@JoinTable(name="roles_authorities",joinColumns = @JoinColumn(name="roles_id",referencedColumnName = "id"),
-			inverseJoinColumns = @JoinColumn(name="authorities_id",referencedColumnName = "id"))
-	private Set<Authority> authorities;
+	@JoinTable(name="roles_authorities",joinColumns = @JoinColumn(name="roles_id"),
+			inverseJoinColumns = @JoinColumn(name="authorities_id"))
+	private Set<Authority> authorities = new HashSet<>();
     
 }

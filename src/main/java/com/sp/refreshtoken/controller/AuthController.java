@@ -23,6 +23,7 @@ import com.sp.refreshtoken.repository.UserRepository;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -102,13 +103,17 @@ public class AuthController {
 
         Set<Role> roles = new HashSet<>();
 
-        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 
-        roles.add(userRole);
-        user.setRoles(roles);
+        Optional<Role> userRole = roleRepository.findByName(ERole.ROLE_USER);
 
-        userRepository.save(user);
+        if(userRole.isPresent()){
+            roles.add(userRole.get());
+            user.setRoles(roles);
+
+            userRepository.save(user);
+        } else{
+            return ResponseEntity.badRequest().body(new MessageResponse("Role not found", "error", null));
+        }
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully.","success",user));
     }

@@ -17,7 +17,4 @@ public class Authority extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(length = 20)
 	private EAuthority name;
-	
-	@ManyToMany(mappedBy = "authorities")
-	Set<Role> roles;
 }

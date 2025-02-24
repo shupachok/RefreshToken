@@ -22,16 +22,15 @@ public abstract class BaseEntity implements Serializable {
     @JsonIgnore
     private String id;
 
-    private String createdBy;
-
-    private String updatedBy;
-
+    private String createBy;
 
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date createdDate;
+    private Date createDate;
+
+    private String updateBy;
 
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date updatedDate;
+    private Date updateDate;
 }

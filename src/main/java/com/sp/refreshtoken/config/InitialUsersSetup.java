@@ -21,7 +21,7 @@ import jakarta.transaction.Transactional;
 
 import java.util.*;
 
-//@Log4j2
+@Log4j2
 @Component
 public class InitialUsersSetup {
 
@@ -46,35 +46,34 @@ public class InitialUsersSetup {
         Authority deleteAuthority = createAuthority(EAuthority.DELETE);
 
         Set<Authority> userAuthority = new HashSet<>();
-//        userAuthority.add(readAuthority);
-//        userAuthority.add(editAuthority);
-//
-//        createRole(ERole.ROLE_USER, userAuthority);
-//
-//        Set<Authority> adminAuthority = new HashSet<>();
-//        adminAuthority.add(readAuthority);
-//        adminAuthority.add(deleteAuthority);
-//        adminAuthority.add(editAuthority);
-//
-//        Role roleAdmin = createRole(ERole.ROLE_ADMIN, adminAuthority);
+        userAuthority.add(readAuthority);
+        userAuthority.add(editAuthority);
 
-//        if (roleAdmin == null) return;
+        createRole(ERole.ROLE_USER, userAuthority);
 
-//        Optional<User> adminUser = userDetailsRepository.findByUsername("admin");
-//
-//        if (adminUser.isEmpty()) {
-//            User user = new User();
-//            Set<Role> adminRole = new HashSet<>();
-//            adminRole.add(roleAdmin);
-//
-//            user.setId(UUID.randomUUID().toString());
-//            user.setUsername("admin");
-//            user.setPassword(encoder.encode("admin1234"));
-//            user.setEmail("demoadmin@gmail.com");
-//            user.setRoles(adminRole);
-//
-//            userDetailsRepository.save(user);
-//        }
+        Set<Authority> adminAuthority = new HashSet<>();
+        adminAuthority.add(readAuthority);
+        adminAuthority.add(deleteAuthority);
+        adminAuthority.add(editAuthority);
+
+        Role roleAdmin = createRole(ERole.ROLE_ADMIN, adminAuthority);
+
+        if (roleAdmin == null) return;
+
+        Optional<User> adminUser = userDetailsRepository.findByUsername("admin");
+
+        if (adminUser.isEmpty()) {
+            User user = new User();
+            Set<Role> adminRole = new HashSet<>();
+            adminRole.add(roleAdmin);
+
+            user.setUsername("admin");
+            user.setPassword(encoder.encode("admin1234"));
+            user.setEmail("demoadmin@gmail.com");
+            user.setRoles(adminRole);
+
+            userDetailsRepository.save(user);
+        }
 
 
     }
