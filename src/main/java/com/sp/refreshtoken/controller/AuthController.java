@@ -1,10 +1,15 @@
 package com.sp.refreshtoken.controller;
 
+import com.sp.refreshtoken.entity.app.RefreshToken;
 import com.sp.refreshtoken.entity.app.Role;
 import com.sp.refreshtoken.entity.app.User;
 import com.sp.refreshtoken.entity.enums.ERole;
+import com.sp.refreshtoken.exception.TokenRefreshException;
 import com.sp.refreshtoken.payload.request.SigninRequest;
+import com.sp.refreshtoken.payload.request.TokenRefreshRequest;
 import com.sp.refreshtoken.payload.response.JwtResponse;
+import com.sp.refreshtoken.payload.response.TokenRefreshResponse;
+import com.sp.refreshtoken.security.service.RefreshTokenService;
 import com.sp.refreshtoken.security.service.UserDetailsImpl;
 import com.sp.refreshtoken.util.JwtUtils;
 import jakarta.validation.Valid;
@@ -47,10 +52,8 @@ public class AuthController {
     @Autowired
     RoleRepository roleRepository;
 
-    @PostMapping("hello-world2")
-    public ResponseEntity<?> helloWorld(){
-        return ResponseEntity.ok("Hello World");
-    }
+    @Autowired
+    RefreshTokenService refreshTokenService;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody SigninRequest req) {
@@ -67,18 +70,12 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-//        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getUsername(),
-                roles
-//                userDetails.getPhoneNumber(),
-//                userDetails.getSalary(),
-//                userDetails.getAddress(),
-//                userDetails.getRefCode(),
-//                userDetails.getMemberType(),
-//                refreshToken.getToken(),
-//                roles
+                roles,
+                refreshToken.getToken()
         ));
     }
 
@@ -116,6 +113,21 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully.","success",user));
+    }
+
+    @PostMapping("/refreshtoken")
+    public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUser)
+                .map(user -> {
+                            String token = jwtUtil.generateToken(user.getUsername());
+                            return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
+                        }
+                )
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,"Refresh token is not in database!"));
     }
 
 }

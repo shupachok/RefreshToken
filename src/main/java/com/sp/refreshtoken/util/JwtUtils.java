@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Component
 public class JwtUtils {
 
-    @Value("${token.expiration_time}")
+    @Value("${jwt.token.expiration-ms}")
     private int jwtExpirationMs;
 
     SecretKey SECRET_KEY = Jwts.SIG.HS256.key().build();

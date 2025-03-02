@@ -1,5 +1,7 @@
 package com.sp.refreshtoken.security.jwt;
 
+import com.sp.refreshtoken.entity.app.RefreshToken;
+import com.sp.refreshtoken.security.service.RefreshTokenService;
 import com.sp.refreshtoken.security.service.UserDetailsServiceImpl;
 import com.sp.refreshtoken.util.JwtUtils;
 import jakarta.servlet.FilterChain;
@@ -17,6 +19,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Log4j2
 @Component
@@ -28,8 +31,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Autowired
 	private UserDetailsServiceImpl userDetailsService;
 
-//	@Autowired
-//	private RefreshTokenService refreshTokenService;
+	@Autowired
+	private RefreshTokenService refreshTokenService;
 
     @Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -37,15 +40,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 		try {
 			String token = parseJwt(request);
 
-//			String rft = parseRft(request);
-//			Optional<RefreshToken> refreshTokenOpt = refreshTokenService.findByToken(rft);
+			String rft = parseRft(request);
+			Optional<RefreshToken> refreshTokenOpt = refreshTokenService.findByToken(rft);
 //
-//			RefreshToken refreshToken = null;
-//			if(refreshTokenOpt.isPresent()){
-//				refreshToken = refreshTokenService.verifyExpiration(refreshTokenOpt.get());
-//			}
+			RefreshToken refreshToken = null;
+			if(refreshTokenOpt.isPresent()){
+				refreshToken = refreshTokenService.verifyExpiration(refreshTokenOpt.get());
+			}
 
-			if ((token != null && jwtUtil.validateJwtToken(token))) {
+			if ((token != null && jwtUtil.validateJwtToken(token)) && refreshToken != null) {
 				String username = jwtUtil.getJwtSubject(token);
 
 				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
