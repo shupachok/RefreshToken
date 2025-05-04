@@ -73,9 +73,6 @@ public class WebSecurity {
                 .authorizeHttpRequests(
                         auth -> auth.requestMatchers(AUTH_WHITELIST).permitAll()
                 )
-                .authorizeHttpRequests(
-                        auth -> auth.anyRequest().authenticated()
-                )
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(csrf -> csrf.disable())
                 .headers(conf -> conf.frameOptions(foption -> foption.disable()))
